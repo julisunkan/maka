@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Stream Weaver{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-4"><i class="bi bi-gear"></i> Settings</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-palette"></i> Appearance</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label">Theme</label>
+                    <select class="form-select" id="themeSelect">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto (System)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-play-circle"></i> Playback Preferences</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label">Default Playback Speed</label>
+                    <select class="form-select" id="defaultSpeed">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1x (Normal)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Default Volume</label>
+                    <input type="range" class="form-range" id="defaultVolume" min="0" max="100" value="80">
+                    <small class="text-muted">Volume: <span id="volumeValue">80</span>%</small>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="rememberPosition">
+                    <label class="form-check-label" for="rememberPosition">
+
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-shield-check"></i> OpenVPN Settings</h5>
+                
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> Upload a <code>.ovpn</code> configuration file to enable VPN for geo-restricted content streaming.
+                </div>
+                
+                <div id="vpnStatus" class="mb-3">
+                    <div class="d-flex align-items-center">
+                        <span class="me-2">Status:</span>
+                        <span id="vpnStatusBadge" class="badge bg-secondary">Loading...</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Upload VPN Configuration</label>
+                    <input type="file" class="form-control" id="vpnConfigFile" accept=".ovpn">
+                    <small class="text-muted">Only .ovpn files are supported</small>
+                </div>
+                
+                <button class="btn btn-primary mb-3" id="uploadVpnBtn">
+                    <i class="bi bi-upload"></i> Upload VPN Config
+                </button>
+                
+                <div class="mb-3">
+                    <label class="form-label">Available VPN Configurations</label>
+                    <div id="vpnConfigList" class="list-group">
+                        <div class="text-center py-2 text-muted small">Loading...</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>Requirements:</strong> OpenVPN must be installed on the system. You can get .ovpn files from VPN providers like NordVPN, ExpressVPN, ProtonVPN, etc.
+                </div>
+            </div>
+        </div>
+
+                        Remember playback position
+                    </label>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="autoplay">
+                    <label class="form-check-label" for="autoplay">
+                        Autoplay on page load
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-badge-cc"></i> Subtitle Preferences</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label">Subtitle Font Size</label>
+                    <select class="form-select" id="subtitleSize">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                        <option value="x-large">Extra Large</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Subtitle Color</label>
+                    <input type="color" class="form-control form-control-color" id="subtitleColor" value="#ffffff">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Subtitle Background</label>
+                    <input type="color" class="form-control form-control-color" id="subtitleBg" value="#000000">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Background Opacity</label>
+                    <input type="range" class="form-range" id="subtitleOpacity" min="0" max="100" value="75">
+                    <small class="text-muted">Opacity: <span id="opacityValue">75</span>%</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-trash"></i> Storage Management</h5>
+                
+                <p class="text-muted">Automatically delete uploaded files older than specified hours.</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Auto-delete after (hours)</label>
+                    <input type="number" class="form-control" id="autoDeleteHours" value="24" min="1" max="168">
+                </div>
+
+                <button class="btn btn-danger" id="cleanupBtn">
+                    <i class="bi bi-trash"></i> Delete Old Files Now
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-info-circle"></i> About</h5>
+                <p><strong>Stream Weaver</strong> v1.0</p>
+                <p class="text-muted small mb-0">
+                    A full-stack streaming platform with live stream player, M3U/HLS playlist support, 
+                    media recording, and VPN integration for geo-restricted content.
+                    Built with Flask, Video.js, HLS.js, and modern web technologies.
+                </p>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-primary btn-lg" id="saveSettingsBtn">
+                <i class="bi bi-save"></i> Save All Settings
+            </button>
+            <button class="btn btn-outline-secondary" id="resetSettingsBtn">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset to Defaults
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function loadSettings() {
+    const settings = {
+        theme: localStorage.getItem('theme') || 'light',
+        defaultSpeed: localStorage.getItem('defaultSpeed') || '1',
+        defaultVolume: localStorage.getItem('defaultVolume') || '80',
+        rememberPosition: localStorage.getItem('rememberPosition') === 'true',
+        autoplay: localStorage.getItem('autoplay') === 'true',
+        subtitleSize: localStorage.getItem('subtitleSize') || 'medium',
+        subtitleColor: localStorage.getItem('subtitleColor') || '#ffffff',
+        subtitleBg: localStorage.getItem('subtitleBg') || '#000000',
+        subtitleOpacity: localStorage.getItem('subtitleOpacity') || '75',
+        autoDeleteHours: localStorage.getItem('autoDeleteHours') || '24'
+    };
+
+    document.getElementById('themeSelect').value = settings.theme;
+    document.getElementById('defaultSpeed').value = settings.defaultSpeed;
+    document.getElementById('defaultVolume').value = settings.defaultVolume;
+    document.getElementById('volumeValue').textContent = settings.defaultVolume;
+    document.getElementById('rememberPosition').checked = settings.rememberPosition;
+    document.getElementById('autoplay').checked = settings.autoplay;
+    document.getElementById('subtitleSize').value = settings.subtitleSize;
+    document.getElementById('subtitleColor').value = settings.subtitleColor;
+    document.getElementById('subtitleBg').value = settings.subtitleBg;
+    document.getElementById('subtitleOpacity').value = settings.subtitleOpacity;
+    document.getElementById('opacityValue').textContent = settings.subtitleOpacity;
+    document.getElementById('autoDeleteHours').value = settings.autoDeleteHours;
+}
+
+document.getElementById('defaultVolume').addEventListener('input', function() {
+    document.getElementById('volumeValue').textContent = this.value;
+});
+
+document.getElementById('subtitleOpacity').addEventListener('input', function() {
+    document.getElementById('opacityValue').textContent = this.value;
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', function() {
+    localStorage.setItem('theme', document.getElementById('themeSelect').value);
+    localStorage.setItem('defaultSpeed', document.getElementById('defaultSpeed').value);
+    localStorage.setItem('defaultVolume', document.getElementById('defaultVolume').value);
+    localStorage.setItem('rememberPosition', document.getElementById('rememberPosition').checked);
+    localStorage.setItem('autoplay', document.getElementById('autoplay').checked);
+    localStorage.setItem('subtitleSize', document.getElementById('subtitleSize').value);
+    localStorage.setItem('subtitleColor', document.getElementById('subtitleColor').value);
+    localStorage.setItem('subtitleBg', document.getElementById('subtitleBg').value);
+    localStorage.setItem('subtitleOpacity', document.getElementById('subtitleOpacity').value);
+    localStorage.setItem('autoDeleteHours', document.getElementById('autoDeleteHours').value);
+
+    applyTheme(document.getElementById('themeSelect').value);
+    
+    showNotification('Settings saved successfully!', 'success');
+});
+
+document.getElementById('resetSettingsBtn').addEventListener('click', function() {
+    const confirmDiv = document.createElement('div');
+    confirmDiv.className = 'alert alert-warning mt-3';
+    confirmDiv.innerHTML = `
+        <strong>Reset all settings to defaults?</strong>
+        <div class="mt-2">
+            <button class="btn btn-sm btn-warning confirm-reset-btn">Yes, Reset</button>
+            <button class="btn btn-sm btn-secondary cancel-reset-btn">Cancel</button>
+        </div>
+    `;
+    
+    this.parentElement.insertBefore(confirmDiv, this.nextSibling);
+    
+    confirmDiv.querySelector('.confirm-reset-btn').addEventListener('click', function() {
+        localStorage.clear();
+        loadSettings();
+        showNotification('Settings reset to defaults', 'success');
+        confirmDiv.remove();
+    });
+    
+    confirmDiv.querySelector('.cancel-reset-btn').addEventListener('click', function() {
+        confirmDiv.remove();
+    });
+});
+
+document.getElementById('cleanupBtn').addEventListener('click', async function() {
+    const hours = document.getElementById('autoDeleteHours').value;
+    const btn = this;
+    
+    const confirmDiv = document.createElement('div');
+    confirmDiv.className = 'alert alert-danger mt-3';
+    confirmDiv.innerHTML = `
+        <strong>Delete all files older than ${hours} hours?</strong>
+        <div class="mt-2">
+            <button class="btn btn-sm btn-danger confirm-cleanup-btn">Yes, Delete</button>
+            <button class="btn btn-sm btn-secondary cancel-cleanup-btn">Cancel</button>
+        </div>
+    `;
+    
+    btn.parentElement.insertBefore(confirmDiv, btn.nextSibling);
+    
+    confirmDiv.querySelector('.confirm-cleanup-btn').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/cleanup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hours: parseInt(hours) })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showNotification(`Successfully deleted ${result.deleted_count} file(s)`, 'success');
+            }
+        } catch (error) {
+            showNotification('Cleanup failed: ' + error.message, 'error');
+        }
+        confirmDiv.remove();
+    });
+    
+    confirmDiv.querySelector('.cancel-cleanup-btn').addEventListener('click', function() {
+        confirmDiv.remove();
+    });
+});
+
+loadSettings();
+
+// VPN Management
+async function loadVpnStatus() {
+    try {
+        const response = await fetch('/vpn/status');
+        const data = await response.json();
+        
+        const statusBadge = document.getElementById('vpnStatusBadge');
+        if (data.is_active && data.is_running) {
+            statusBadge.className = 'badge bg-success';
+            statusBadge.textContent = 'VPN Active';
+        } else if (data.is_active && !data.is_running) {
+            statusBadge.className = 'badge bg-warning';
+            statusBadge.textContent = 'VPN Starting...';
+        } else {
+            statusBadge.className = 'badge bg-secondary';
+            statusBadge.textContent = 'VPN Inactive';
+        }
+        
+        const vpnList = document.getElementById('vpnConfigList');
+        if (data.all_vpns.length === 0) {
+            vpnList.innerHTML = '<div class="text-center py-2 text-muted small">No VPN configurations uploaded</div>';
+        } else {
+            vpnList.innerHTML = '';
+            data.all_vpns.forEach(vpn => {
+                const div = document.createElement('div');
+                div.className = 'list-group-item d-flex justify-content-between align-items-center';
+                div.innerHTML = `
+                    <div>
+                        <strong class="small">${vpn.original_name}</strong>
+                        ${vpn.is_active ? '<span class="badge bg-success ms-2">Active</span>' : ''}
+                        <br>
+                        <small class="text-muted">${new Date(vpn.upload_date).toLocaleString()}</small>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        ${!vpn.is_active ? `<button class="btn btn-success activate-vpn-btn" data-id="${vpn.id}">
+                            <i class="bi bi-play-fill"></i> Activate
+                        </button>` : `<button class="btn btn-warning deactivate-vpn-btn">
+                            <i class="bi bi-stop-fill"></i> Deactivate
+                        </button>`}
+                        <button class="btn btn-danger delete-vpn-btn" data-id="${vpn.id}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                vpnList.appendChild(div);
+            });
+            
+            document.querySelectorAll('.activate-vpn-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const vpnId = this.dataset.id;
+                    try {
+                        const response = await fetch(`/vpn/activate/${vpnId}`, { method: 'POST' });
+                        const result = await response.json();
+                        if (result.success) {
+                            showNotification('VPN activated successfully!', 'success');
+                            loadVpnStatus();
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Failed to activate VPN: ' + error.message, 'error');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.deactivate-vpn-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    try {
+                        const response = await fetch('/vpn/deactivate', { method: 'POST' });
+                        const result = await response.json();
+                        if (result.success) {
+                            showNotification('VPN deactivated', 'info');
+                            loadVpnStatus();
+                        }
+                    } catch (error) {
+                        showNotification('Failed to deactivate VPN: ' + error.message, 'error');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.delete-vpn-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const vpnId = this.dataset.id;
+                    const listItem = this.closest('.list-group-item');
+                    
+                    const confirmDiv = document.createElement('div');
+                    confirmDiv.className = 'alert alert-warning alert-dismissible fade show mt-2 mb-0';
+                    confirmDiv.innerHTML = `
+                        <strong>Delete this VPN configuration?</strong>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-danger confirm-delete-vpn">Yes, Delete</button>
+                            <button class="btn btn-sm btn-secondary cancel-delete-vpn">Cancel</button>
+                        </div>
+                    `;
+                    
+                    listItem.appendChild(confirmDiv);
+                    
+                    confirmDiv.querySelector('.confirm-delete-vpn').addEventListener('click', async function() {
+                        try {
+                            const response = await fetch(`/vpn/delete/${vpnId}`, { method: 'DELETE' });
+                            const result = await response.json();
+                            if (result.success) {
+                                showNotification('VPN configuration deleted', 'success');
+                                loadVpnStatus();
+                            }
+                        } catch (error) {
+                            showNotification('Failed to delete VPN: ' + error.message, 'error');
+                        }
+                    });
+                    
+                    confirmDiv.querySelector('.cancel-delete-vpn').addEventListener('click', function() {
+                        confirmDiv.remove();
+                    });
+                });
+            });
+        }
+    } catch (error) {
+        console.error('Failed to load VPN status:', error);
+    }
+}
+
+document.getElementById('uploadVpnBtn').addEventListener('click', async function() {
+    const fileInput = document.getElementById('vpnConfigFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showNotification('Please select a .ovpn file', 'warning');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-hourglass-split"></i> Uploading...';
+    
+    try {
+        const response = await fetch('/upload_vpn', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('VPN configuration uploaded successfully!', 'success');
+            fileInput.value = '';
+            loadVpnStatus();
+        } else {
+            showNotification('Upload failed: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Upload error: ' + error.message, 'error');
+    } finally {
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-upload"></i> Upload VPN Config';
+    }
+});
+
+loadVpnStatus();
+setInterval(loadVpnStatus, 5000); // Refresh status every 5 seconds
+</script>
+{% endblock %}

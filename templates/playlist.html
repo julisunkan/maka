@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block title %}Playlist - Stream Weaver{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <h1 class="mb-4"><i class="bi bi-music-note-list"></i> Playlist Manager</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-link-45deg"></i> Load Online Playlist</h5>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="playlistUrl" 
+                           placeholder="Enter M3U or M3U8 playlist URL...">
+                    <button class="btn btn-primary" id="loadPlaylistBtn">
+                        <i class="bi bi-download"></i> Load Playlist
+                    </button>
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="useVpn">
+                    <label class="form-check-label" for="useVpn">
+                        <i class="bi bi-shield-check"></i> Use VPN (for geo-restricted content)
+                    </label>
+                </div>
+                <p class="text-muted small mb-0">
+                    Example: https://example.com/playlist.m3u8
+                </p>
+                <p class="text-muted small mb-0">
+                    <strong>Note:</strong> Upload and activate a VPN config in Settings to enable this option.
+                </p>
+            </div>
+        </div>
+
+        <div class="card mb-4 d-none" id="playerCard">
+            <div class="card-body p-0">
+                <video id="playlistPlayer" class="video-js vjs-default-skin vjs-big-play-centered" 
+                       controls preload="auto"></video>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-list-ul"></i> Playlist Items</h5>
+                <div class="mb-3" id="searchContainer" style="display: none;">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="playlistSearch" 
+                               placeholder="Search playlist items...">
+                        <button class="btn btn-outline-secondary" id="clearSearch" type="button">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted" id="searchResults"></small>
+                </div>
+                <div id="playlistItems" class="list-group">
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mt-2">No playlist loaded. Enter a URL above to get started.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-gear"></i> Playlist Controls</h6>
+                
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="shuffleToggle">
+                    <label class="form-check-label small" for="shuffleToggle">
+                        <i class="bi bi-shuffle"></i> Shuffle
+                    </label>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="repeatToggle">
+                    <label class="form-check-label small" for="repeatToggle">
+                        <i class="bi bi-repeat"></i> Repeat All
+                    </label>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="autoplayNext">
+                    <label class="form-check-label small" for="autoplayNext">
+                        <i class="bi bi-skip-forward"></i> Autoplay Next
+                    </label>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-sm btn-outline-primary" id="prevBtn" disabled>
+                        <i class="bi bi-skip-start"></i> Previous
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" id="nextBtn" disabled>
+                        <i class="bi bi-skip-end"></i> Next
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle"></i> About Playlists</h6>
+                <p class="small text-muted mb-0">
+                    This player supports M3U and M3U8 (HLS) playlists. 
+                    For HLS streams, adaptive bitrate streaming is automatically enabled.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let playlistItems = [];
+let currentIndex = 0;
+let player = null;
+
+document.getElementById('loadPlaylistBtn').addEventListener('click', async () => {
+    const url = document.getElementById('playlistUrl').value.trim();
+    const useVpn = document.getElementById('useVpn').checked;
+    
+    if (!url) {
+        showNotification('Please enter a playlist URL', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/parse_playlist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, use_vpn: useVpn })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            playlistItems = data.items;
+            displayPlaylist();
+            if (playlistItems.length > 0) {
+                playItem(0);
+            }
+            showNotification(`Loaded ${data.items.length} playlist items`, 'success');
+        } else {
+            showNotification('Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Failed to load playlist: ' + error.message, 'error');
+    }
+});
+
+function displayPlaylist(searchTerm = '') {
+    const container = document.getElementById('playlistItems');
+    const searchContainer = document.getElementById('searchContainer');
+    const searchResults = document.getElementById('searchResults');
+    container.innerHTML = '';
+
+    // Show search bar when playlist is loaded
+    if (playlistItems.length > 0) {
+        searchContainer.style.display = 'block';
+    }
+
+    // Filter items based on search term
+    const filteredItems = searchTerm 
+        ? playlistItems.filter((item, index) => {
+            const title = (item.title || `Item ${index + 1}`).toLowerCase();
+            return title.includes(searchTerm.toLowerCase());
+        })
+        : playlistItems;
+
+    // Update search results text
+    if (searchTerm) {
+        searchResults.textContent = `Showing ${filteredItems.length} of ${playlistItems.length} items`;
+    } else {
+        searchResults.textContent = '';
+    }
+
+    // Display filtered items
+    if (filteredItems.length === 0 && searchTerm) {
+        container.innerHTML = `
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-search display-4"></i>
+                <p class="mt-2">No items found matching "${searchTerm}"</p>
+            </div>
+        `;
+    } else {
+        filteredItems.forEach((item) => {
+            const index = playlistItems.indexOf(item);
+            const div = document.createElement('div');
+            div.className = 'list-group-item list-group-item-action';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 me-2">
+                        <i class="bi bi-play-circle me-2"></i>
+                        <strong class="small">${item.title || 'Item ' + (index + 1)}</strong>
+                        ${item.duration && item.duration > 0 ? `<span class="badge bg-secondary ms-2">${Math.round(item.duration)}s</span>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-primary play-item-btn" data-index="${index}">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    document.querySelectorAll('.play-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            playItem(index);
+        });
+    });
+
+    document.getElementById('prevBtn').disabled = false;
+    document.getElementById('nextBtn').disabled = false;
+}
+
+// Add search functionality
+document.getElementById('playlistSearch').addEventListener('input', function(e) {
+    displayPlaylist(e.target.value);
+});
+
+document.getElementById('clearSearch').addEventListener('click', function() {
+    document.getElementById('playlistSearch').value = '';
+    displayPlaylist('');
+});
+
+function playItem(index) {
+    if (index < 0 || index >= playlistItems.length) return;
+    
+    currentIndex = index;
+    const item = playlistItems[index];
+    
+    const playerCard = document.getElementById('playerCard');
+    playerCard.classList.remove('d-none');
+    
+    if (!player) {
+        player = videojs('playlistPlayer', {
+            controls: true,
+            fluid: true,
+            preload: 'auto',
+            html5: {
+                vhs: {
+                    overrideNative: true
+                },
+                nativeAudioTracks: false,
+                nativeVideoTracks: false
+            }
+        });
+    }
+
+    // Proxy external URLs to avoid CORS issues
+    let srcUrl = item.uri;
+    if (item.uri.startsWith('http://') || item.uri.startsWith('https://')) {
+        srcUrl = '/proxy_resource/' + encodeURIComponent(item.uri);
+    }
+
+    if (item.uri.includes('.m3u8') || item.uri.includes('.m3u')) {
+        player.src({ 
+            src: srcUrl, 
+            type: 'application/x-mpegURL' 
+        });
+    } else {
+        player.src({ 
+            src: srcUrl,
+            type: 'video/mp4'
+        });
+    }
+
+    // Wait for source to load before playing
+    player.one('loadedmetadata', function() {
+        const playPromise = player.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(err => {
+                console.error('Playback error:', err);
+                showNotification('Could not autoplay. Click the play button to start.', 'warning');
+            });
+        }
+    });
+
+    // Handle loading errors
+    player.one('error', function() {
+        const error = player.error();
+        console.error('Player error:', error);
+        showNotification('Error loading stream: ' + (error ? error.message : 'Unknown error'), 'error');
+    });
+    
+    document.querySelectorAll('.list-group-item').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentIndex > 0) {
+        playItem(currentIndex - 1);
+    }
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+    if (currentIndex < playlistItems.length - 1) {
+        playItem(currentIndex + 1);
+    }
+});
+
+document.getElementById('autoplayNext').addEventListener('change', function() {
+    if (player && this.checked) {
+        player.on('ended', () => {
+            if (currentIndex < playlistItems.length - 1) {
+                playItem(currentIndex + 1);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

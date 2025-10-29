@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Stream Weaver{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4"><i class="bi bi-film"></i> Stream Weaver - Stream Player & Media Hub</h1>
+
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-play-circle display-1 text-primary mb-4"></i>
+                <h2 class="mb-3">Welcome to Stream Weaver</h2>
+                <p class="lead text-muted mb-4">Your all-in-one streaming and recording platform for live streams, playlists, and media</p>
+
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-4 mb-3">
+                        <a href="/recorder" class="text-decoration-none">
+                            <div class="card h-100 hover-card">
+                                <div class="card-body">
+                                    <i class="bi bi-camera-video-fill display-4 text-danger"></i>
+                                    <h5 class="card-title mt-3">Record Media</h5>
+                                    <p class="card-text text-muted">Capture video and audio directly from your browser</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <a href="/playlist" class="text-decoration-none">
+                            <div class="card h-100 hover-card">
+                                <div class="card-body">
+                                    <i class="bi bi-music-note-list display-4 text-success"></i>
+                                    <h5 class="card-title mt-3">Play Streams</h5>
+                                    <p class="card-text text-muted">Stream online playlists and media URLs</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <a href="/settings" class="text-decoration-none">
+                            <div class="card h-100 hover-card">
+                                <div class="card-body">
+                                    <i class="bi bi-gear-fill display-4 text-info"></i>
+                                    <h5 class="card-title mt-3">Settings</h5>
+                                    <p class="card-text text-muted">Configure app preferences and VPN</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// No upload functionality needed
+</script>
+{% endblock %}

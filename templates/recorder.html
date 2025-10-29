@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Recorder - Stream Weaver{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="mb-4"><i class="bi bi-camera-video"></i> Media Recorder</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="btn-group w-100 mb-3" role="group">
+                    <input type="radio" class="btn-check" name="recordMode" id="videoMode" value="video" checked>
+                    <label class="btn btn-outline-primary" for="videoMode">
+                        <i class="bi bi-camera-video"></i> Video + Audio
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="recordMode" id="audioMode" value="audio">
+                    <label class="btn btn-outline-primary" for="audioMode">
+                        <i class="bi bi-mic"></i> Audio Only
+                    </label>
+                </div>
+
+                <div id="previewContainer" class="mb-3">
+                    <video id="preview" class="w-100 bg-dark" autoplay muted></video>
+                    <canvas id="visualizer" class="w-100 d-none"></canvas>
+                </div>
+
+                <div class="text-center mb-3">
+                    <button class="btn btn-success btn-lg me-2" id="startBtn">
+                        <i class="bi bi-record-circle"></i> Start Recording
+                    </button>
+                    <button class="btn btn-danger btn-lg me-2 d-none" id="stopBtn">
+                        <i class="bi bi-stop-circle"></i> Stop Recording
+                    </button>
+                    <button class="btn btn-warning btn-lg d-none" id="pauseBtn">
+                        <i class="bi bi-pause-circle"></i> Pause
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <span class="badge bg-secondary" id="recordingTime">00:00:00</span>
+                    <span class="badge bg-danger d-none" id="recordingIndicator">
+                        <i class="bi bi-circle-fill blink"></i> Recording
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card d-none" id="playbackCard">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-play-circle"></i> Recording Playback</h5>
+                <video id="playback" class="w-100 mb-3" controls></video>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" id="uploadBtn">
+                        <i class="bi bi-download"></i> Download Recording
+                    </button>
+                    <button class="btn btn-outline-secondary" id="discardBtn">
+                        <i class="bi bi-trash"></i> Discard & Record Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <h6><i class="bi bi-info-circle"></i> Important Notes:</h6>
+            <ul class="mb-0 small">
+                <li><strong>Permissions Required:</strong> Your browser will ask for camera/microphone access - click "Allow"</li>
+                <li><strong>Browser Compatibility:</strong> Works best in Chrome, Firefox, or Edge (latest versions)</li>
+                <li><strong>Iframe Limitations:</strong> If running in Replit's preview, camera access may be blocked by browser security</li>
+                <li><strong>Workaround:</strong> Open the app in a new tab by clicking the "Open in new tab" button above the preview</li>
+                <li>Choose between video+audio or audio-only recording</li>
+                <li>Recordings are saved in WebM format and can be previewed before downloading</li>
+                <li>Recordings are downloaded directly to your device and not stored on the server</li>
+            </ul>
+        </div>
+
+        <div class="alert alert-warning mt-3">
+            <h6><i class="bi bi-exclamation-triangle"></i> Troubleshooting Camera/Microphone Issues:</h6>
+            <ul class="mb-0 small">
+                <li><strong>"Requested device not found":</strong> Ensure camera/microphone are connected and not in use by another app</li>
+                <li><strong>"Permission denied":</strong> Check browser settings to allow camera/microphone access for this site</li>
+                <li><strong>Still not working?</strong> Try:
+                    <ol class="mt-1 mb-0">
+                        <li>Open this app in a new browser tab (not in iframe/preview)</li>
+                        <li>Use Chrome or Firefox instead of Safari</li>
+                        <li>Check your system privacy settings for camera/microphone permissions</li>
+                        <li>Try "Audio Only" mode if video recording fails</li>
+                    </ol>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/recorder.js') }}"></script>
+{% endblock %}

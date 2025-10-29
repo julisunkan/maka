@@ -1,0 +1,328 @@
+Build a full-stack, web-based Video & Audio Player Web App using Python (Flask) and HTML5/JavaScript frontend, hosted on Replit, with pure Flask streaming (no FFmpeg-based streaming).
+
+🏗️ Project Summary
+
+Develop a responsive, browser-based multimedia player and recorder called MediaFusion.
+
+It should:
+
+Play all video and audio files (formats) uploaded by users or streamed from online sources (m3u, m3u8, or direct URLs).
+
+Use pure Flask streaming for media playback (via byte-range support).
+
+Allow subtitle upload, subtitle search via OpenSubtitles API, and AI-generated captions using open-source Whisper or Vosk.
+
+Record video and audio from the user’s camera and microphone.
+
+Be fully open-source, free to use, and deployable on Replit (or PythonAnywhere free tier).
+
+⚙️ Core Requirements
+A. Backend (Flask App)
+
+Use Python 3.10+ with Flask.
+No background workers, no Celery — everything synchronous.
+
+Implement these routes:
+
+/ — homepage, lists uploaded videos/audio and provides upload UI.
+
+/upload — POST route to upload media files (video/audio).
+
+/stream/<filename> — stream media using pure Flask byte-range streaming (no FFmpeg).
+
+Handle partial content (Range headers).
+
+Serve both video and audio seamlessly.
+
+/upload_subtitle — upload subtitle files (.srt or .vtt).
+
+/search_subtitle — use OpenSubtitles API to find and fetch free subtitles.
+
+/generate_caption — auto-generate captions via Whisper or Vosk.
+
+/upload_recording — save user recordings from browser’s MediaRecorder.
+
+/playlist — load .m3u or .m3u8 playlists and render a playable list.
+
+/metadata/<filename> — return file metadata (duration, size, mime type).
+
+/cleanup — optional endpoint to delete old uploaded files.
+
+Pure Flask Streaming Implementation:
+
+Use Python’s open() and seek() for partial reads.
+
+Support HTTP 206 Partial Content responses.
+
+Stream chunks via Response generator.
+
+B. Frontend (HTML5 + JS + CSS)
+
+Use plain HTML5, JavaScript, and optionally TailwindCSS or Bootstrap.
+
+Frontend Pages:
+
+index.html
+
+File upload UI (drag & drop or select).
+
+List of recent uploads with play buttons.
+
+player.html
+
+Embedded video/audio player using Video.js or Plyr.js.
+
+Subtitle controls (upload/select/search).
+
+Playback options (speed, loop, PiP, full-screen).
+
+recorder.html
+
+Use browser MediaRecorder API to record audio/video.
+
+Allow playback preview and upload recording to backend.
+
+playlist.html
+
+Render .m3u/.m3u8 playlists using HLS.js for adaptive streams.
+
+settings.html
+
+Customize subtitle appearance, theme (dark/light), playback defaults.
+
+Player Features (JS):
+
+Load /stream/<filename> as video source.
+
+Load subtitles via <track> tags dynamically.
+
+Handle user-uploaded or online subtitles.
+
+Control playback rate, volume, loop, PiP.
+
+Store preferences in localStorage.
+
+Support playback resume (remember last position).
+
+Subtitle search and attach (OpenSubtitles).
+
+Integrate hls.js for .m3u8 streaming.
+
+Recorder Features (JS):
+
+Use navigator.mediaDevices.getUserMedia({ audio: true, video: true }).
+
+Start/stop recording with preview.
+
+Upload blob via /upload_recording.
+
+C. Subtitles & Captions
+
+Allow users to upload .srt and .vtt.
+
+Fetch online subtitles from OpenSubtitles API (requires free key).
+
+Generate captions locally:
+
+Use OpenAI Whisper (tiny model) for transcription, or
+
+Use Vosk for offline recognition.
+
+Save generated captions as .vtt files.
+
+Display subtitles dynamically in player.
+
+D. AI/Utility Features (Free APIs Only)
+
+LibreTranslate API – translate subtitles into other languages.
+
+Scene detection and silence detection (optional) – use FFmpeg only for analysis, not for streaming.
+
+Summarization and keyword extraction – use Hugging Face transformers (distilbart or similar).
+
+Local Analytics – track play count and duration (store in SQLite or browser storage).
+
+E. UI/UX Enhancements
+
+Dark/Light themes.
+
+Speed control (0.25×–2×).
+
+A–B repeat mode.
+
+Frame-by-frame seek.
+
+Subtitle offset control.
+
+Persistent user settings in localStorage.
+
+Audio visualization (Web Audio API).
+
+Bookmark system (mark timestamps).
+
+Picture-in-picture mode.
+
+Drag & drop file uploads.
+
+F. Playlist & Stream Management
+
+Support .m3u and .m3u8 formats.
+
+Parse playlist on backend with m3u8 library.
+
+Display playlist items on frontend.
+
+Support shuffle and repeat.
+
+Allow users to build their own playlists (store as JSON locally).
+
+G. Data Storage
+
+Use SQLite (built-in) for:
+
+Media metadata
+
+Subtitles list
+
+Analytics
+
+Uploaded recordings
+
+Store media and subtitles under:
+
+/static/uploads/
+/static/subtitles/
+
+
+Auto-delete files older than X hours (via scheduled function).
+
+H. Security & Privacy
+
+Sanitize uploads (secure_filename).
+
+Validate MIME types.
+
+Limit file size (<100 MB).
+
+Disable executable uploads.
+
+Use HTTPS (Replit provides automatically).
+
+Delete temporary files regularly.
+Delete all uploaded files after user exit.
+
+🧰 Dependencies (All Free & Open Source)
+Python Libraries
+flask
+werkzeug
+requests
+pysrt
+webvtt-py
+whisper
+vosk
+m3u8
+transformers
+torch
+librosa
+moviepy
+python-dotenv
+
+Frontend Libraries (CDNs)
+<link href="https://cdn.jsdelivr.net/npm/video.js/dist/video-js.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/video.js/dist/video.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/plyr@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+🪄 Backend Implementation Notes (Replit Optimization)
+
+Avoid FFmpeg for streaming.
+
+Use pure Flask streaming:
+
+from flask import Response, request
+
+@app.route('/stream/<path:filename>')
+def stream_media(filename):
+    file_path = os.path.join('static/uploads', filename)
+    range_header = request.headers.get('Range', None)
+    if not range_header:
+        return send_file(file_path)
+    size = os.path.getsize(file_path)
+    byte1, byte2 = 0, None
+    match = re.search(r'(\d+)-(\d*)', range_header)
+    if match:
+        byte1 = int(match.group(1))
+        if match.group(2):
+            byte2 = int(match.group(2))
+    length = size - byte1
+    with open(file_path, 'rb') as f:
+        f.seek(byte1)
+        data = f.read(length)
+    resp = Response(data, 206, mimetype=mimetypes.guess_type(file_path)[0],
+                    content_type=mimetypes.guess_type(file_path)[0])
+    resp.headers.add('Content-Range', f'bytes {byte1}-{size-1}/{size}')
+    resp.headers.add('Accept-Ranges', 'bytes')
+    return resp
+
+
+This ensures smooth video/audio streaming without ffmpeg.
+
+🌐 Deployment (Replit-Specific)
+
+Create new Replit → select Flask (Python) template.
+
+Paste generated files into project.
+
+Create folders:
+
+static/uploads/
+static/subtitles/
+templates/
+
+
+Set environment variables in Replit Secrets:
+
+OPEN_SUBTITLES_API_KEY
+
+LIBRETRANSLATE_URL (optional)
+
+Run pip install -r requirements.txt.
+
+Start the Flask app (Replit auto-runs python app.py).
+
+Open the public URL to access the player.
+
+🧩 Optional Extras
+
+PWA (Progressive Web App) for offline playback.
+
+Subtitle community page (users share uploaded subtitles).
+
+Local analytics dashboard using Chart.js.
+
+Multi-language UI with JSON translation files.
+
+Theme toggle button + persistent dark mode.
+
+🏁 Deliverables Expected from AI
+
+When you paste this prompt into Replit:
+
+It must generate:
+
+app.py (main Flask app)
+
+/templates/*.html (index, player, recorder, etc.)
+
+/static/js/*.js (player, recorder logic)
+
+/static/css/style.css
+
+requirements.txt
+
+All features should function locally in Replit’s preview URL.
+
+Use pure Flask streaming (no FFmpeg-based stream).
+
+Use only free and open-source tools.

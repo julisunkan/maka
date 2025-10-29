@@ -1,0 +1,416 @@
+
+{% extends "base.html" %}
+
+{% block title %}Browser - MediaFusion{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="bi bi-globe"></i> Web Browser (VPN Enabled)</h1>
+
+        <div class="card mb-4" style="display: none;">
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="urlInput" 
+                               placeholder="Search or enter URL (e.g., 'cats' or 'youtube.com')">
+                        <button class="btn btn-primary" id="browseBtn">
+                            <i class="bi bi-arrow-right-circle"></i> Go
+                        </button>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="useVpnBrowser" checked>
+                                <label class="form-check-label" for="useVpnBrowser">
+                                    <i class="bi bi-shield-check"></i> Use VPN
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select form-select-sm" id="searchEngineSelect">
+                                <option value="google">🔍 Search with Google</option>
+                                <option value="bing">🔍 Search with Bing</option>
+                                <option value="duckduckgo">🔍 Search with DuckDuckGo</option>
+                                <option value="yahoo">🔍 Search with Yahoo</option>
+                                <option value="brave">🔍 Search with Brave</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="userAgentSelect" class="form-label">
+                            <i class="bi bi-laptop"></i> User Agent
+                        </label>
+                        <select class="form-select" id="userAgentSelect">
+                            <option value="chrome-windows">Chrome (Windows Desktop)</option>
+                            <option value="chrome-mac">Chrome (macOS Desktop)</option>
+                            <option value="firefox-windows">Firefox (Windows Desktop)</option>
+                            <option value="firefox-mac">Firefox (macOS Desktop)</option>
+                            <option value="safari-mac">Safari (macOS Desktop)</option>
+                            <option value="edge-windows">Edge (Windows Desktop)</option>
+                            <option value="chrome-android">Chrome (Android Mobile)</option>
+                            <option value="safari-ios">Safari (iOS Mobile)</option>
+                            <option value="firefox-android">Firefox (Android Mobile)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="vpnWarning" class="alert alert-warning" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i> VPN is not active. Please activate a VPN in Settings first.
+                </div>
+
+                <div id="browserStatus" class="mb-2"></div>
+
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-sm btn-outline-secondary" id="backBtn" disabled>
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="forwardBtn" disabled>
+                        <i class="bi bi-arrow-right"></i> Forward
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="refreshBtn" disabled>
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" id="homeBtn">
+                        <i class="bi bi-house"></i> Home
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" id="openDirectBtn" disabled>
+                        <i class="bi bi-box-arrow-up-right"></i> Open in New Tab
+                    </button>
+                </div>
+
+                <div class="mb-2">
+                    <small class="text-muted">
+                        Current URL: <span id="currentUrl" class="fw-bold">None</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div id="browserContent" style="min-height: 500px; overflow: auto; background: white; padding: 20px;">
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-globe display-1"></i>
+                        <p class="mt-3">Enter a URL above to start browsing</p>
+                        <p class="small">VPN routing will be used if enabled and active</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle"></i> Browser Information</h6>
+                <p class="small text-muted mb-2">
+                    <strong>Features:</strong>
+                </p>
+                <ul class="small text-muted mb-0">
+                    <li><strong>Smart Search:</strong> Enter search terms to search, or URLs to browse directly</li>
+                    <li><strong>Multiple Search Engines:</strong> Choose from Google, Bing, DuckDuckGo, Yahoo, or Brave</li>
+                    <li>Browse websites through VPN connection for geo-restricted content</li>
+                    <li>Server-side rendering protects your IP address</li>
+                    <li>Native playback of video and audio files</li>
+                    <li>Navigation controls (Back, Forward, Refresh, Open in New Tab)</li>
+                </ul>
+                <p class="small text-muted mt-2 mb-1">
+                    <strong>For Interactive Sites (like Google):</strong>
+                </p>
+                <ul class="small text-muted mb-0">
+                    <li>Complex sites with forms and search may have limited functionality when viewed in the embedded browser</li>
+                    <li>Click the <strong>"Open in New Tab"</strong> button to open the site in a full browser window with complete functionality</li>
+                    <li>The VPN routing applies only to the initial page fetch; direct tab opens bypass VPN</li>
+                </ul>
+                <p class="small text-muted mt-2 mb-0">
+                    <strong>Best for:</strong> Viewing geo-restricted media, accessing blocked content, playing videos/audio files directly from URLs
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let browserHistory = [];
+let currentHistoryIndex = -1;
+
+async function checkVpnStatus() {
+    try {
+        const response = await fetch('/vpn/status');
+        const data = await response.json();
+        
+        const warning = document.getElementById('vpnWarning');
+        const useVpn = document.getElementById('useVpnBrowser').checked;
+        
+        if (useVpn && (!data.is_active || !data.is_running)) {
+            warning.style.display = 'block';
+            return false;
+        } else {
+            warning.style.display = 'none';
+            return true;
+        }
+    } catch (error) {
+        return false;
+    }
+}
+
+document.getElementById('useVpnBrowser').addEventListener('change', checkVpnStatus);
+
+async function browseTo(url, addToHistory = true) {
+    const useVpn = document.getElementById('useVpnBrowser').checked;
+    const userAgent = document.getElementById('userAgentSelect').value;
+    const browseBtn = document.getElementById('browseBtn');
+    const statusDiv = document.getElementById('browserStatus');
+    const contentDiv = document.getElementById('browserContent');
+    
+    if (useVpn) {
+        const vpnActive = await checkVpnStatus();
+        if (!vpnActive) {
+            showNotification('Please activate VPN in Settings first', 'warning');
+            return;
+        }
+    }
+    
+    browseBtn.disabled = true;
+    browseBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+    statusDiv.innerHTML = '<div class="alert alert-info small mb-0">Loading page...</div>';
+    
+    try {
+        const response = await fetch('/proxy_browse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, use_vpn: useVpn, user_agent: userAgent })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Check if it's a media file
+            const contentType = data.content_type.toLowerCase();
+            
+            if (contentType.includes('video/') || data.final_url.match(/\.(mp4|webm|ogv|avi|mov|mkv)$/i)) {
+                // Display as video player
+                contentDiv.innerHTML = `
+                    <div class="text-center p-4">
+                        <h5 class="mb-3">Video Player</h5>
+                        <video controls style="max-width: 100%; height: auto; max-height: 600px;">
+                            <source src="${data.final_url}" type="${contentType}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                `;
+            } else if (contentType.includes('audio/') || data.final_url.match(/\.(mp3|wav|ogg|m4a|flac)$/i)) {
+                // Display as audio player
+                contentDiv.innerHTML = `
+                    <div class="text-center p-4">
+                        <h5 class="mb-3">Audio Player</h5>
+                        <audio controls style="width: 100%; max-width: 600px;">
+                            <source src="${data.final_url}" type="${contentType}">
+                            Your browser does not support the audio tag.
+                        </audio>
+                    </div>
+                `;
+            } else if (contentType.includes('image/') || data.final_url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+                // Display as image
+                contentDiv.innerHTML = `
+                    <div class="text-center p-4">
+                        <h5 class="mb-3">Image Viewer</h5>
+                        <img src="${data.final_url}" alt="Image" style="max-width: 100%; height: auto; max-height: 600px;">
+                    </div>
+                `;
+            } else {
+                // Display HTML content in iframe with enhanced permissions
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '600px';
+                iframe.style.border = 'none';
+                // Enhanced sandbox permissions for better interactivity
+                iframe.sandbox = 'allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-top-navigation-by-user-activation';
+                
+                // Create proper HTML document with base tag for relative URLs
+                const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="${data.final_url}">
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+${data.content}
+</body>
+</html>`;
+                
+                iframe.srcdoc = fullHtml;
+                
+                contentDiv.innerHTML = '';
+                contentDiv.appendChild(iframe);
+                
+                // Show a helper message for interactive sites
+                if (data.final_url.includes('google.com')) {
+                    statusDiv.innerHTML = '<div class="alert alert-info small mb-0"><i class="bi bi-info-circle"></i> For full functionality (searching, etc.), click "Open in New Tab" to use the site directly.</div>';
+                }
+            }
+            
+            // Update URL display
+            document.getElementById('currentUrl').textContent = data.final_url;
+            
+            // Update history
+            if (addToHistory) {
+                currentHistoryIndex++;
+                browserHistory = browserHistory.slice(0, currentHistoryIndex);
+                browserHistory.push(data.final_url);
+                updateNavigationButtons();
+            }
+            
+            statusDiv.innerHTML = '<div class="alert alert-success small mb-0">Page loaded successfully</div>';
+            setTimeout(() => statusDiv.innerHTML = '', 3000);
+        } else {
+            statusDiv.innerHTML = `<div class="alert alert-danger small mb-0">Error: ${data.error}</div>`;
+            contentDiv.innerHTML = `
+                <div class="text-center py-5 text-danger">
+                    <i class="bi bi-x-circle display-1"></i>
+                    <p class="mt-3">${data.error}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="alert alert-danger small mb-0">Error: ${error.message}</div>`;
+        contentDiv.innerHTML = `
+            <div class="text-center py-5 text-danger">
+                <i class="bi bi-x-circle display-1"></i>
+                <p class="mt-3">Failed to load page</p>
+            </div>
+        `;
+    } finally {
+        browseBtn.disabled = false;
+        browseBtn.innerHTML = '<i class="bi bi-arrow-right-circle"></i> Browse';
+    }
+}
+
+function updateNavigationButtons() {
+    document.getElementById('backBtn').disabled = currentHistoryIndex <= 0;
+    document.getElementById('forwardBtn').disabled = currentHistoryIndex >= browserHistory.length - 1;
+    document.getElementById('refreshBtn').disabled = currentHistoryIndex < 0;
+    document.getElementById('openDirectBtn').disabled = currentHistoryIndex < 0;
+}
+
+function isUrl(text) {
+    // Check if the input looks like a URL
+    const urlPattern = /^(https?:\/\/)|^(www\.)|(\.\w{2,})/i;
+    const domainPattern = /^[\w-]+\.[\w-]+(\.[\w-]+)*$/i;
+    
+    // Check for common URL patterns
+    if (urlPattern.test(text)) return true;
+    if (domainPattern.test(text)) return true;
+    
+    // Check if it contains a space (likely a search query)
+    if (text.includes(' ')) return false;
+    
+    // Check if it looks like a domain (contains a dot)
+    if (text.includes('.') && !text.includes(' ')) return true;
+    
+    return false;
+}
+
+function getSearchUrl(query, searchEngine) {
+    const encodedQuery = encodeURIComponent(query);
+    const searchEngines = {
+        'google': `https://www.google.com/search?q=${encodedQuery}`,
+        'bing': `https://www.bing.com/search?q=${encodedQuery}`,
+        'duckduckgo': `https://duckduckgo.com/?q=${encodedQuery}`,
+        'yahoo': `https://search.yahoo.com/search?p=${encodedQuery}`,
+        'brave': `https://search.brave.com/search?q=${encodedQuery}`
+    };
+    
+    return searchEngines[searchEngine] || searchEngines['google'];
+}
+
+document.getElementById('browseBtn').addEventListener('click', () => {
+    const input = document.getElementById('urlInput').value.trim();
+    if (input) {
+        let url;
+        
+        if (isUrl(input)) {
+            // It's a URL, use it directly
+            url = input;
+        } else {
+            // It's a search query
+            const searchEngine = document.getElementById('searchEngineSelect').value;
+            url = getSearchUrl(input, searchEngine);
+        }
+        
+        browseTo(url);
+    } else {
+        showNotification('Please enter a search term or URL', 'warning');
+    }
+});
+
+document.getElementById('urlInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('browseBtn').click();
+    }
+});
+
+document.getElementById('backBtn').addEventListener('click', () => {
+    if (currentHistoryIndex > 0) {
+        currentHistoryIndex--;
+        browseTo(browserHistory[currentHistoryIndex], false);
+        updateNavigationButtons();
+    }
+});
+
+document.getElementById('forwardBtn').addEventListener('click', () => {
+    if (currentHistoryIndex < browserHistory.length - 1) {
+        currentHistoryIndex++;
+        browseTo(browserHistory[currentHistoryIndex], false);
+        updateNavigationButtons();
+    }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => {
+    if (currentHistoryIndex >= 0) {
+        browseTo(browserHistory[currentHistoryIndex], false);
+    }
+});
+
+document.getElementById('homeBtn').addEventListener('click', () => {
+    const searchEngine = document.getElementById('searchEngineSelect').value;
+    let homeUrl;
+    
+    switch(searchEngine) {
+        case 'bing':
+            homeUrl = 'bing.com';
+            break;
+        case 'duckduckgo':
+            homeUrl = 'duckduckgo.com';
+            break;
+        case 'yahoo':
+            homeUrl = 'yahoo.com';
+            break;
+        case 'brave':
+            homeUrl = 'search.brave.com';
+            break;
+        default:
+            homeUrl = 'google.com';
+    }
+    
+    document.getElementById('urlInput').value = homeUrl;
+    browseTo(homeUrl);
+});
+
+document.getElementById('openDirectBtn').addEventListener('click', () => {
+    if (currentHistoryIndex >= 0) {
+        const url = browserHistory[currentHistoryIndex];
+        window.open(url, '_blank');
+    }
+});
+
+// Check VPN status on load
+checkVpnStatus();
+</script>
+{% endblock %}
