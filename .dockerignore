@@ -1,0 +1,81 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Python cache
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+
+# Development files
+.env
+.env.local
+.flaskenv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+!RENDER_DEPLOY.md
+
+# Database (will be created in container)
+*.db
+*.sqlite
+*.sqlite3
+mediafusion.db
+
+# User uploaded content (will be created in container)
+static/uploads/*
+static/subtitles/*
+static/vpn/*.ovpn
+
+# Logs
+*.log
+logs/
+/tmp/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Build files
+dist/
+build/
+*.egg-info/
+
+# Replit specific
+.replit
+replit.nix
+.config/
+.cache/
+.upm/
+.pythonlibs/
+
+# PythonAnywhere specific
+.pythonanywhere
+.pythonanywhere.local
+PYTHONANYWHERE_DEPLOY.md
+
+# Other deployment configs
+docker-compose.yml
+docker-compose.*.yml

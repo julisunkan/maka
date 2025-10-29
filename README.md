@@ -62,12 +62,40 @@ A full-stack Flask web application for streaming live content, playing online pl
 
 ## 📦 Deployment
 
+### Deploy to Render.com (Recommended for Production)
+
+**See detailed guide**: [`RENDER_DEPLOY.md`](RENDER_DEPLOY.md)
+
+Render provides the best balance of features, cost, and ease of deployment with Docker support.
+
+**Quick Steps:**
+1. Push code to GitHub
+2. Connect repository to Render
+3. Render auto-detects `Dockerfile` and `render.yaml`
+4. Configure environment variables
+5. Deploy! (3-5 minutes)
+
+**Features:**
+- ✅ Docker support (OpenVPN ready)
+- ✅ Free tier available
+- ✅ Auto-deploy on git push
+- ✅ SSL/HTTPS included
+- ✅ No cold starts (paid plans)
+
+**For full OpenVPN support:** Deploy to VPS or use external VPN service (see `RENDER_DEPLOY.md`)
+
+---
+
 ### Deploy to Replit
 
 1. Import this repository to Replit
 2. Dependencies will install automatically
 3. Click "Run" to start the server
 4. Use Replit's built-in deployment tools to publish
+
+**Note**: OpenVPN has limited functionality on Replit
+
+---
 
 ### Deploy to PythonAnywhere
 
@@ -82,20 +110,29 @@ Quick steps:
 
 **Note**: VPN features won't work on PythonAnywhere (shared hosting limitation)
 
-### Deploy to VPS (Digital Ocean, AWS, etc.)
+---
 
-For full VPN functionality, deploy to a VPS:
+### Deploy to VPS (Full OpenVPN Support)
+
+For **full VPN functionality**, deploy to a VPS using Docker Compose:
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Clone repository
+git clone https://github.com/yourusername/stream-weaver.git
+cd stream-weaver
 
-# Set environment variable
-export SESSION_SECRET="your-secret-key"
+# Run automated setup (Ubuntu/Debian)
+sudo bash vps-setup.sh
 
-# Run with gunicorn
-gunicorn --bind 0.0.0.0:5000 --workers 4 app:app
+# Start with Docker Compose
+docker-compose up -d
 ```
+
+**Recommended VPS Providers:**
+- DigitalOcean ($6/month)
+- Linode ($5/month)
+- Vultr ($6/month)
+- Hetzner (€4.51/month)
 
 ## 🛠️ Configuration
 

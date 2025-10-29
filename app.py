@@ -80,6 +80,14 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+@app.route('/health')
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'service': 'stream-weaver',
+        'version': '1.0.0'
+    }), 200
+
 @app.route('/favicon.ico')
 def favicon():
     return send_file('static/favicon.ico', mimetype='image/x-icon')
