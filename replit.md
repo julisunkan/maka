@@ -35,11 +35,23 @@ Stream Weaver is a full-stack Flask web application for streaming live content, 
 
 ## Recent Changes
 - 2025-10-29: Initial project setup
+- 2025-10-29: Generated PWA icons (regular and maskable)
+- 2025-10-29: Removed install app button popup
+- 2025-10-29: Added service worker registration to main.js
+- 2025-10-29: Optimized for PythonAnywhere deployment
+
+## Deployment
+- **Replit**: Ready to deploy using built-in deployment tools
+- **PythonAnywhere**: See `PYTHONANYWHERE_DEPLOY.md` for detailed deployment guide
+  - WSGI configuration file included: `wsgi.py`
+  - Cleanup script for scheduled tasks: `cleanup_script.py`
+  - Note: VPN features won't work on PythonAnywhere (requires VPS)
 
 ## User Preferences
-- None recorded yet
+- Removed "Install App" button (service worker still active)
+- PWA functionality maintained through manifest and service worker
 
 ## Environment Variables
-- SESSION_SECRET: Flask session secret key
+- SESSION_SECRET: Flask session secret key (required for production)
 - OPEN_SUBTITLES_API_KEY: (Optional) For subtitle search feature
 - LIBRETRANSLATE_URL: (Optional) For subtitle translation feature

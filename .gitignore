@@ -22,3 +22,30 @@ static/uploads/*
 !static/uploads/.gitkeep
 static/subtitles/*
 !static/subtitles/.gitkeep
+static/vpn/*
+!static/vpn/.gitkeep
+
+# Logs
+*.log
+logs/
+/tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+*.bak
+
+# Replit
+.config/
+.cache/
+.upm/
+.pythonlibs/
+
+# PythonAnywhere
+.pythonanywhere.local
