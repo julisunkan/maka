@@ -25,6 +25,9 @@ A full-stack Flask web application for streaming live content, playing online pl
 
 - Python 3.10 or higher
 - pip (Python package manager)
+- OpenVPN (optional, for VPN features - see [SYSTEM_DEPENDENCIES.md](SYSTEM_DEPENDENCIES.md))
+
+**Note**: See [`SYSTEM_DEPENDENCIES.md`](SYSTEM_DEPENDENCIES.md) for detailed system requirements and platform-specific installation instructions.
 
 ### Local Development
 
@@ -34,17 +37,25 @@ A full-stack Flask web application for streaming live content, playing online pl
    cd stream-weaver
    ```
 
-2. **Install dependencies**
+2. **Install Python dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+3. **Install system dependencies** (optional - for VPN features)
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get install openvpn
+   
+   # See SYSTEM_DEPENDENCIES.md for other platforms
+   ```
+
+4. **Run the application**
    ```bash
    python app.py
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    ```
    http://localhost:5000
    ```
