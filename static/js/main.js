@@ -81,3 +81,15 @@ function showNotification(message, type = 'info') {
         setTimeout(() => alert.remove(), 150);
     }, 5000);
 }
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful:', registration.scope);
+            })
+            .catch(err => {
+                console.log('ServiceWorker registration failed:', err);
+            });
+    });
+}
