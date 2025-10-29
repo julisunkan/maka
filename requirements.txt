@@ -35,3 +35,4 @@ python-dotenv==1.0.0
 requests==2.31.0
 webvtt-py==0.5.1
 Werkzeug==3.0.1
+Pillow
